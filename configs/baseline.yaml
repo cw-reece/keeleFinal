@@ -1,26 +1,26 @@
-# Baseline config stub (M1)
-# This file is intentionally incomplete; it exists so runs can snapshot configs consistently.
-
 project:
   name: okvqa-kg-late-fusion
   run_tag: baseline_vilt
 
 data:
-  train_questions_json: "OpenEnded_mscoco_train2014_questions.json"
-  train_annotations_json: "mscoco_train2014_annotations.json"
-  val_questions_json: "OpenEnded_mscoco_val2014_questions.json"
-  val_annotations_json: "mscoco_val2014_annotations.json"
   dataset: okvqa
-  # Update these paths for your machine
   okvqa_root: data/raw/okvqa
   coco_images_root: data/raw/okvqa/images
   annotations_dir: data/raw/okvqa/annotations
   split: val
 
+  # OK-VQA / VQA-style JSON filenames under annotations_dir
+  train_questions_json: "OpenEnded_mscoco_train2014_questions.json"
+  train_annotations_json: "mscoco_train2014_annotations.json"
+  val_questions_json: "OpenEnded_mscoco_val2014_questions.json"
+  val_annotations_json: "mscoco_val2014_annotations.json"
+
 model:
-pretrained_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
   baseline: vilt
-  # Answer vocab details (classification baseline)
+
+  # Used only for eval sanity-check until you train your own baseline
+  pretrained_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
+
   answer_vocab:
     enabled: true
     top_n: 3000
@@ -48,3 +48,4 @@ fusion:
 logging:
   out_root: experiments/runs
   include_pip_freeze: false
+
