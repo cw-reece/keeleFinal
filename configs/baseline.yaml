@@ -1,0 +1,45 @@
+# Baseline config stub (M1)
+# This file is intentionally incomplete; it exists so runs can snapshot configs consistently.
+
+project:
+  name: okvqa-kg-late-fusion
+  run_tag: baseline_vilt
+
+data:
+  dataset: okvqa
+  # Update these paths for your machine
+  okvqa_root: data/raw/okvqa
+  coco_images_root: data/raw/okvqa/images
+  annotations_dir: data/raw/okvqa/annotations
+  split: val
+
+model:
+  baseline: vilt
+  # Answer vocab details (classification baseline)
+  answer_vocab:
+    enabled: true
+    top_n: 3000
+    path: data/processed/okvqa/answer_vocab.json
+
+training:
+  seed: 42
+  epochs: 1
+  batch_size: 8
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  mixed_precision: false
+
+kg:
+  enabled: false
+  source: conceptnet
+  hop_depth: 1
+  top_k: 10
+  relation_set: strict
+  cache_dir: data/cache/okvqa/slices
+
+fusion:
+  mode: none  # none | weighted | gating
+
+logging:
+  out_root: experiments/runs
+  include_pip_freeze: false

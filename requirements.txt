@@ -1,0 +1,7 @@
+# Minimal baseline dependencies (pin later if needed)
+torch
+torchvision
+transformers
+datasets
+pillow
+tqdm
