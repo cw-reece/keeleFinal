@@ -1,7 +1,7 @@
 # OK-VQA Knowledge-Augmented VQA (Project Scaffold)
 
 This repo scaffold is for:
-- Baseline OK-VQA VQA model (ViLT) + evaluation
+source .venv/bin/activate- Baseline OK-VQA VQA model (ViLT) + evaluation
 - Task-specific ConceptNet slice + knowledge branch
 - Late fusion + ablations
 - Reproducible run logging (`experiments/runs/<run_id>/`)
