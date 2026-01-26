@@ -6,6 +6,10 @@ project:
   run_tag: baseline_vilt
 
 data:
+  train_questions_json: "OpenEnded_mscoco_train2014_questions.json"
+  train_annotations_json: "mscoco_train2014_annotations.json"
+  val_questions_json: "OpenEnded_mscoco_val2014_questions.json"
+  val_annotations_json: "mscoco_val2014_annotations.json"
   dataset: okvqa
   # Update these paths for your machine
   okvqa_root: data/raw/okvqa
@@ -14,6 +18,7 @@ data:
   split: val
 
 model:
+pretrained_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
   baseline: vilt
   # Answer vocab details (classification baseline)
   answer_vocab:
