@@ -1,0 +1,11 @@
+# PATCH NOTES for src/train_baseline.py (apply manually or unzip updated file):
+# 1) Add optional init_from_vqa_checkpoint to load encoder weights from ViltForQuestionAnswering checkpoint.
+# 2) Log target coverage rates (fraction of samples with any in-vocab answer).
+# 3) Enable mixed_precision only when set.
+#
+# I am providing these as separate files in this zip:
+# - run_metadata.py (seconds in run_id)
+# - scripts/vocab_coverage.py
+# - configs/baseline_train_suggested.yaml
+#
+# If you want, I can also ship a full updated src/train_baseline.py that includes the vqa-init.

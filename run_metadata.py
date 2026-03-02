@@ -1,16 +1,8 @@
 # run_metadata.py
 """Lightweight experiment run metadata + folder management.
 
-What it does:
-- Creates a timestamped run folder under experiments/runs/<run_id>/
-- Snapshots your config file into the run folder
-- Captures git info (commit, branch, dirty state)
-- Captures environment info (python/platform; optional torch/cuda; optional pip freeze)
-- Writes run.json (metadata) + metrics.json (when you call write_metrics)
-
-Designed to be imported from train/eval scripts OR used directly.
-
-No hard deps beyond the Python standard library.
+Hotfix:
+- Run IDs now include seconds to prevent collisions when you run twice in the same minute.
 """
 
 from __future__ import annotations
@@ -34,8 +26,8 @@ def utc_now_iso() -> str:
 
 
 def local_now_run_id(tag: str) -> str:
-    """Example: 20260112_1430_baseline_vilt_seed42"""
-    ts = _dt.datetime.now().strftime("%Y%m%d_%H%M")
+    """Example: 20260227_124812_baseline_v2_ep3_fullval"""
+    ts = _dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     safe_tag = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in tag.strip())
     return f"{ts}_{safe_tag}"
 
@@ -53,7 +45,6 @@ def ensure_dir(path: Path) -> None:
 
 
 def run_cmd(cmd: list[str], cwd: Optional[Path] = None) -> Tuple[int, str, str]:
-    """Run a command and return (returncode, stdout, stderr). Never raises."""
     try:
         p = subprocess.run(
             cmd,
@@ -90,7 +81,6 @@ def get_git_info(repo_root: Path) -> Dict[str, Any]:
 
 
 def get_torch_info() -> Dict[str, Any]:
-    """Optional: collects torch/cuda info if torch is installed."""
     try:
         import torch  # type: ignore
 
@@ -109,7 +99,6 @@ def get_torch_info() -> Dict[str, Any]:
 
 
 def get_pip_freeze() -> Dict[str, Any]:
-    """Optional: captures 'pip freeze'. Can be slow but is very useful."""
     rc, out, err = run_cmd([sys.executable, "-m", "pip", "freeze"])
     if rc == 0:
         return {"pip_freeze": out.splitlines()}
@@ -140,7 +129,6 @@ def write_json(path: Path, payload: Dict[str, Any]) -> None:
 
 
 def snapshot_config(config_path: Path, run_dir: Path) -> Dict[str, Any]:
-    """Copies config into run_dir and records a sha256 hash."""
     if not config_path.exists():
         return {"config_found": False, "config_path": str(config_path)}
 
@@ -174,7 +162,6 @@ def init_run(
     extra: Optional[Dict[str, Any]] = None,
     argv: Optional[list[str]] = None,
 ) -> RunContext:
-    """Create run folder + write run.json metadata. Returns RunContext."""
     out_root_p = Path(out_root)
     repo_root_p = Path(repo_root)
 
@@ -205,33 +192,7 @@ def init_run(
 
 
 def write_metrics(run_dir: str | Path, metrics: Dict[str, Any]) -> Path:
-    """Write experiments/runs/<run_id>/metrics.json"""
     run_dir_p = Path(run_dir)
     metrics_path = run_dir_p / "metrics.json"
     write_json(metrics_path, metrics)
     return metrics_path
-
-
-if __name__ == "__main__":
-    import argparse
-
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--config", required=True)
-    ap.add_argument("--tag", required=True)
-    ap.add_argument("--out_root", default="experiments/runs")
-    ap.add_argument("--repo_root", default=".")
-    ap.add_argument("--pip_freeze", action="store_true")
-    args = ap.parse_args()
-
-    ctx = init_run(
-        tag=args.tag,
-        config_path=args.config,
-        out_root=args.out_root,
-        repo_root=args.repo_root,
-        include_pip_freeze=args.pip_freeze,
-        argv=sys.argv,
-    )
-
-    print(f"Created run: {ctx.run_id}")
-    print(f"Run dir: {ctx.run_dir}")
-    print(f"Metadata: {ctx.run_json_path}")
