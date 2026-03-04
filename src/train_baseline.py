@@ -1,14 +1,26 @@
 # src/train_baseline.py
-"""Baseline training for OK-VQA (Milestone 2) — CUDA-safe DataLoader version.
+"""Baseline training for OK-VQA (Milestone 2) — VQA-init + class-imbalance fix.
 
-Fixes:
-- Avoids moving tensors to CUDA inside DataLoader workers (prevents:
-  'Cannot re-initialize CUDA in forked subprocess').
-- Collate function keeps tensors on CPU; training loop moves to device.
-- num_workers defaults to 0 for stability.
+This version addresses two common failure modes that produce near-zero accuracy even with good vocab coverage:
+
+1) Initialization: starting from MLM-only ViLT weights can collapse.
+   Fix: optionally initialize the encoder from a VQA-finetuned checkpoint
+   (dandelin/vilt-b32-finetuned-vqa) while keeping a fresh vocab head.
+
+2) Extreme class imbalance: targets are sparse (few positives among 10k labels).
+   Fix: use BCEWithLogitsLoss(reduction='sum')/batch AND apply a reasonable pos_weight.
+
+Config additions (optional):
+model:
+  init_from_vqa_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
+
+training:
+  pos_weight: 50                # override auto (recommended range: 10..200)
+  pos_weight_auto_samples: 512  # how many train samples to estimate avg positives
+  pos_weight_max: 200           # clamp auto pos_weight
 
 Usage:
-  python -m src.train_baseline --config configs/baseline_train.yaml --tag baseline_v1_ep1
+  python -m src.train_baseline --config configs/baseline_train_v4_suggested.yaml --tag baseline_v4_vocab10k_ep3_fullval
 """
 
 from __future__ import annotations
@@ -24,7 +36,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-from transformers import ViltProcessor
+from transformers import ViltProcessor, ViltForQuestionAnswering
 
 from run_metadata import init_run, write_metrics
 from src.datasets.okvqa import OKVQADataset
@@ -68,6 +80,21 @@ def make_soft_target(answers: List[str], a2i: Dict[str, int], num_labels: int) -
     return y
 
 
+def estimate_avg_positives(ds_base: OKVQADataset, a2i: Dict[str, int], samples: int = 512) -> float:
+    """Estimate avg number of in-vocab positive labels per example without building full vectors."""
+    n = min(samples, len(ds_base.records))
+    tot = 0
+    for i in range(n):
+        r = ds_base.records[i]
+        pos = set()
+        for a in r.answers:
+            na = normalize_answer(a)
+            if na in a2i:
+                pos.add(na)
+        tot += len(pos)
+    return (tot / float(n)) if n > 0 else 1.0
+
+
 class OKVQABaselineDataset(Dataset):
     def __init__(self, base: OKVQADataset, answer_to_idx: Dict[str, int], num_labels: int, limit: int | None = None) -> None:
         self.base = base
@@ -105,21 +132,20 @@ def move_batch_to_device(batch: Dict[str, Any], device: str) -> Dict[str, Any]:
 
 
 @torch.no_grad()
-def evaluate(model: ViltForAnswerVocab, dataloader: DataLoader, idx_to_answer: List[str], device: str) -> Dict[str, Any]:
+def evaluate(model: ViltForAnswerVocab, dataloader: DataLoader, idx_to_answer: List[str], device: str, bce_sum) -> Dict[str, Any]:
     model.eval()
     preds: List[str] = []
     gts: List[List[str]] = []
     loss_sum = 0.0
     n_batches = 0
 
-    bce = nn.BCEWithLogitsLoss()
-
     for batch in tqdm(dataloader, desc="eval", leave=False):
         b = move_batch_to_device(batch, device)
         out = model(b["inputs"])
         logits = out.logits
         targets = b["targets"]
-        loss = bce(logits, targets)
+
+        loss = bce_sum(logits, targets) / logits.size(0)
         loss_sum += float(loss.item())
         n_batches += 1
 
@@ -133,6 +159,26 @@ def evaluate(model: ViltForAnswerVocab, dataloader: DataLoader, idx_to_answer: L
         "val_loss_mean": (loss_sum / max(n_batches, 1)),
         "n_eval_examples": len(preds),
     }
+
+
+def maybe_init_from_vqa(model: ViltForAnswerVocab, vqa_ckpt: str) -> Dict[str, Any]:
+    """Initialize the ViLT encoder weights from a VQA-finetuned checkpoint."""
+    info: Dict[str, Any] = {"enabled": False}
+    if not vqa_ckpt:
+        return info
+
+    donor = ViltForQuestionAnswering.from_pretrained(vqa_ckpt)
+    incompatible = model.vilt.load_state_dict(donor.vilt.state_dict(), strict=False)
+    # In newer torch/transformers, load_state_dict returns an IncompatibleKeys object.
+    missing = getattr(incompatible, "missing_keys", [])
+    unexpected = getattr(incompatible, "unexpected_keys", [])
+    info = {
+        "enabled": True,
+        "vqa_checkpoint": vqa_ckpt,
+        "missing_keys_count": len(missing),
+        "unexpected_keys_count": len(unexpected),
+    }
+    return info
 
 
 def main() -> int:
@@ -163,13 +209,13 @@ def main() -> int:
         return 2
 
     seed = int(_cfg_get(cfg, ["training", "seed"], 42))
-    epochs = int(_cfg_get(cfg, ["training", "epochs"], 1))
+    epochs = int(_cfg_get(cfg, ["training", "epochs"], 3))
     batch_size = int(_cfg_get(cfg, ["training", "batch_size"], 4))
     lr = float(_cfg_get(cfg, ["training", "learning_rate"], 5e-5))
     weight_decay = float(_cfg_get(cfg, ["training", "weight_decay"], 0.01))
-    mixed_precision = bool(_cfg_get(cfg, ["training", "mixed_precision"], False))
-    limit_train = int(_cfg_get(cfg, ["training", "limit_train"], 256))
-    limit_val = int(_cfg_get(cfg, ["training", "limit_val"], 256))
+    mixed_precision = bool(_cfg_get(cfg, ["training", "mixed_precision"], True))
+    limit_train = _cfg_get(cfg, ["training", "limit_train"], None)
+    limit_val = _cfg_get(cfg, ["training", "limit_val"], None)
     num_workers = int(_cfg_get(cfg, ["training", "num_workers"], 0))
 
     torch.manual_seed(seed)
@@ -183,8 +229,37 @@ def main() -> int:
     processor = ViltProcessor.from_pretrained(backbone, use_fast=False)
     model = ViltForAnswerVocab(backbone_checkpoint=backbone, num_labels=num_labels, dropout=float(_cfg_get(cfg, ["model", "dropout"], 0.1))).to(device)
 
+    # Optional: initialize encoder from VQA checkpoint
+    vqa_init_ckpt = _cfg_get(cfg, ["model", "init_from_vqa_checkpoint"], "")
+    vqa_init_info = maybe_init_from_vqa(model, vqa_init_ckpt)
+
     ds_train_base = OKVQADataset(f"{ann_dir}/{train_q}", f"{ann_dir}/{train_a}", img_root, load_images=True)
     ds_val_base = OKVQADataset(f"{ann_dir}/{val_q}", f"{ann_dir}/{val_a}", img_root, load_images=True)
+
+    if limit_train is not None:
+        limit_train = int(limit_train)
+    if limit_val is not None:
+        limit_val = int(limit_val)
+
+    # pos_weight
+    pos_weight_cfg = _cfg_get(cfg, ["training", "pos_weight"], None)
+    pos_weight_max = float(_cfg_get(cfg, ["training", "pos_weight_max"], 200.0))
+    pos_weight_auto_samples = int(_cfg_get(cfg, ["training", "pos_weight_auto_samples"], 512))
+
+    if pos_weight_cfg is None:
+        avg_pos = estimate_avg_positives(ds_train_base, answer_to_idx, samples=pos_weight_auto_samples)
+        if avg_pos <= 0:
+            avg_pos = 1.0
+        pos_weight_scalar = min(max((num_labels - avg_pos) / avg_pos, 1.0), pos_weight_max)
+        pos_weight_source = "auto"
+        avg_pos_est = avg_pos
+    else:
+        pos_weight_scalar = float(pos_weight_cfg)
+        pos_weight_scalar = min(max(pos_weight_scalar, 1.0), pos_weight_max)
+        pos_weight_source = "config"
+        avg_pos_est = None
+
+    pos_weight_tensor = torch.full((num_labels,), pos_weight_scalar, device=device)
 
     ds_train = OKVQABaselineDataset(ds_train_base, answer_to_idx, num_labels, limit=limit_train)
     ds_val = OKVQABaselineDataset(ds_val_base, answer_to_idx, num_labels, limit=limit_val)
@@ -207,7 +282,8 @@ def main() -> int:
     )
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    bce = nn.BCEWithLogitsLoss()
+
+    bce_sum = nn.BCEWithLogitsLoss(reduction="sum", pos_weight=pos_weight_tensor)
 
     try:
         scaler = torch.amp.GradScaler("cuda", enabled=(mixed_precision and device == "cuda"))
@@ -223,25 +299,25 @@ def main() -> int:
         model.train()
         for batch in tqdm(train_loader, desc=f"train epoch {epoch}/{epochs}"):
             b = move_batch_to_device(batch, device)
-
             optimizer.zero_grad(set_to_none=True)
+
             if scaler.is_enabled():
                 with torch.autocast(device_type="cuda", enabled=True):
                     out = model(b["inputs"])
-                    loss = bce(out.logits, b["targets"])
+                    loss = bce_sum(out.logits, b["targets"]) / out.logits.size(0)
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
             else:
                 out = model(b["inputs"])
-                loss = bce(out.logits, b["targets"])
+                loss = bce_sum(out.logits, b["targets"]) / out.logits.size(0)
                 loss.backward()
                 optimizer.step()
 
             train_loss_sum += float(loss.item())
             n_steps += 1
 
-        val_metrics = evaluate(model, val_loader, idx_to_answer, device)
+        val_metrics = evaluate(model, val_loader, idx_to_answer, device, bce_sum)
 
     dt = time.time() - t0
     train_loss_mean = train_loss_sum / max(n_steps, 1)
@@ -255,6 +331,8 @@ def main() -> int:
             "backbone_checkpoint": backbone,
             "idx_to_answer": idx_to_answer,
             "seed": seed,
+            "pos_weight": pos_weight_scalar,
+            "vqa_init": vqa_init_info,
         },
         ckpt_path,
     )
@@ -275,6 +353,11 @@ def main() -> int:
         "train_loss_mean": train_loss_mean,
         "seconds": dt,
         "checkpoint_path": str(ckpt_path),
+        "loss_reduction": "sum_div_batch",
+        "pos_weight": pos_weight_scalar,
+        "pos_weight_source": pos_weight_source,
+        "avg_pos_estimate": avg_pos_est,
+        "vqa_init": vqa_init_info,
     }
     metrics.update(val_metrics)
 
