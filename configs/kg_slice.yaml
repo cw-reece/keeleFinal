@@ -1,0 +1,33 @@
+# configs/kg_slice.yaml
+# Milestone 3: ConceptNet ingestion + task-specific slicing
+
+data:
+  annotations_dir: data/raw/okvqa/annotations
+  coco_images_root: data/raw/okvqa/images
+  train_questions_json: "OpenEnded_mscoco_train2014_questions.json"
+  train_annotations_json: "mscoco_train2014_annotations.json"
+  val_questions_json: "OpenEnded_mscoco_val2014_questions.json"
+  val_annotations_json: "mscoco_val2014_annotations.json"
+
+conceptnet:
+  # Download ConceptNet assertions (5.7.0) and place here:
+  # data/raw/conceptnet/conceptnet-assertions-5.7.0.csv.gz
+  assertions_path: data/raw/conceptnet/conceptnet-assertions-5.7.0.csv.gz
+  # SQLite db built by scripts/build_conceptnet_db.py
+  db_path: data/processed/conceptnet/conceptnet_en.sqlite
+  min_weight: 0.0
+  batch_size: 50000
+
+kg:
+  cache_dir: data/cache/okvqa/slices
+  hop_depth: 1
+  top_k: 10
+  relation_set: broad # strict | broad
+  min_weight: 0.0
+  neighbor_limit: 200
+  max_entities: 6
+  max_ngram: 3
+  scorer_version: v1
+
+logging:
+  out_root: experiments/runs
