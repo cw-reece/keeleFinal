@@ -1,0 +1,48 @@
+data:
+  annotations_dir: data/raw/okvqa/annotations
+  coco_images_root: data/raw/okvqa/images
+  train_questions_json: OpenEnded_mscoco_train2014_questions.json
+  train_annotations_json: mscoco_train2014_annotations.json
+  val_questions_json: OpenEnded_mscoco_val2014_questions.json
+  val_annotations_json: mscoco_val2014_annotations.json
+baseline:
+  checkpoint_path: experiments/runs/BASELINE_FREEZE_20260312_1456/checkpoints/model.pt
+model:
+  backbone_checkpoint: dandelin/vilt-b32-mlm
+  answer_vocab:
+    path: data/processed/okvqa/answer_vocab.json
+conceptnet:
+  db_path: data/processed/conceptnet/conceptnet_en.sqlite
+kg:
+  cache_dir: data/cache/okvqa/slices
+  hop_depth: 1
+  top_k: 20
+  relation_set: broad
+  min_weight: 0.0
+  neighbor_limit: 200
+  max_entities: 6
+  max_ngram: 3
+  scorer_version: v1
+embed:
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+  cache_dir: data/cache/embeddings
+  temperature: 2.0
+  fact_batch_size: 128
+  answer_batch_size: 512
+fusion:
+  mode: weighted
+  alpha_init: 0.05
+  learn_alpha: true
+  topn_rerank: 20
+  hidden_dim: 128
+training:
+  seed: 42
+  epochs: 1
+  batch_size: 4
+  learning_rate: 0.001
+  weight_decay: 0.0
+  limit_train: 512
+  limit_val: 512
+  num_workers: 0
+logging:
+  out_root: experiments/runs

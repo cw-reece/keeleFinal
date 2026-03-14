@@ -1,0 +1,24 @@
+# configs/experiment_matrix.yaml
+# Milestone 6: automated experiment matrix for fusion runs.
+
+base_config: configs/fusion_train_v3_topn.yaml
+runner: fusion
+tag_prefix: m6_matrix
+
+fixed:
+  baseline.checkpoint_path: experiments/runs/BASELINE_FREEZE_20260312_1456/checkpoints/model.pt
+  training.epochs: 1
+  training.batch_size: 4
+  training.learning_rate: 1.0e-3
+  embed.temperature: 2.0
+  fusion.learn_alpha: true
+  fusion.topn_rerank: 20
+
+limits:
+  training.limit_train: 512
+  training.limit_val: 512
+
+grid:
+  kg.relation_set: [strict, broad]
+  kg.top_k: [5, 10, 20]
+  fusion.mode: [weighted, gated]
