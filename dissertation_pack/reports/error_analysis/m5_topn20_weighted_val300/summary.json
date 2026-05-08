@@ -1,0 +1,24 @@
+{
+  "fusion_run_dir": "experiments/runs/20260313_145031_m5_topn20_weighted_fullval",
+  "split": "val",
+  "limit": 300,
+  "fusion_mode": "weighted",
+  "topn_rerank": 20,
+  "temperature": 2.0,
+  "counts": {
+    "improved": 0,
+    "worsened": 0,
+    "same": 300,
+    "empty_slices": 65
+  },
+  "rates": {
+    "improved": 0.0,
+    "worsened": 0.0,
+    "empty_slices": 0.21666666666666667
+  },
+  "files": {
+    "predictions_jsonl": "reports/error_analysis/m5_topn20_weighted_val300/predictions.jsonl",
+    "selected_cases_md": "reports/error_analysis/m5_topn20_weighted_val300/selected_cases.md",
+    "summary_json": "reports/error_analysis/m5_topn20_weighted_val300/summary.json"
+  }
+}

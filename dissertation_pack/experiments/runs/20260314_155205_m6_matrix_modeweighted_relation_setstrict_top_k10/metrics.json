@@ -1,0 +1,40 @@
+{
+  "alpha_info": {
+    "alpha": 0.0451069213449955,
+    "learn_alpha": true
+  },
+  "batch_size": 4,
+  "delta_val_acc": -0.0006510416666666574,
+  "device": "cuda",
+  "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "epochs": 1,
+  "fusion_mode": "weighted",
+  "seconds": 24.464959621429443,
+  "seed": 42,
+  "slice_config": {
+    "hop_depth": 1,
+    "max_entities": 6,
+    "max_ngram": 3,
+    "min_weight": 0.0,
+    "neighbor_limit": 200,
+    "relation_set": "strict",
+    "scorer_version": "v1",
+    "top_k": 10
+  },
+  "status": "ok",
+  "temperature": 2.0,
+  "topn_rerank": 20,
+  "train_loss_mean": 43.128782495856285,
+  "val_baseline": {
+    "kg_enabled": false,
+    "n_eval_examples": 512,
+    "val_loss_mean": 39.37257678806782,
+    "val_vqa_soft_accuracy_mean": 0.1354166666666666
+  },
+  "val_fused": {
+    "kg_enabled": true,
+    "n_eval_examples": 512,
+    "val_loss_mean": 39.473134875297546,
+    "val_vqa_soft_accuracy_mean": 0.13476562499999994
+  }
+}

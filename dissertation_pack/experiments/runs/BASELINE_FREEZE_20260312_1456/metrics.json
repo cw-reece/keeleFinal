@@ -1,0 +1,30 @@
+{
+  "avg_pos_estimate": null,
+  "batch_size": 3,
+  "checkpoint_path": "experiments/runs/20260304_123946_baseline_v4_ep5/checkpoints/model.pt",
+  "device": "cuda",
+  "epochs": 5,
+  "learning_rate": 0.0001,
+  "limit_train": 9009,
+  "limit_val": 5046,
+  "loss_reduction": "sum_div_batch",
+  "mixed_precision": true,
+  "n_eval_examples": 5046,
+  "num_labels": 10000,
+  "num_workers": 0,
+  "pos_weight": 20.0,
+  "pos_weight_source": "config",
+  "seconds": 1300.4924204349518,
+  "seed": 42,
+  "status": "ok",
+  "train_loss_mean": 237.46432729003988,
+  "val_loss_mean": 112.89278738450494,
+  "val_vqa_soft_accuracy_mean": 0.16389219183511633,
+  "vqa_init": {
+    "enabled": true,
+    "missing_keys_count": 0,
+    "unexpected_keys_count": 0,
+    "vqa_checkpoint": "dandelin/vilt-b32-finetuned-vqa"
+  },
+  "weight_decay": 0.01
+}
