@@ -1,0 +1,28 @@
+base_config: configs/fusion_train_v3_topn.yaml
+runner: fusion
+tag_prefix: m6_fullscale
+
+fixed:
+  baseline.checkpoint_path: experiments/runs/BASELINE_FREEZE_20260312_1456/checkpoints/model.pt
+  training.epochs: 1
+  training.batch_size: 4
+  training.learning_rate: 1.0e-3
+  embed.temperature: 2.0
+  fusion.learn_alpha: true
+  fusion.topn_rerank: 20
+  kg.relation_set: strict
+  kg.top_k: 10
+
+limits:
+  training.limit_train: 9009
+  training.limit_val: 5046
+
+grid:
+  fusion.mode: [weighted, gated]
+
+#python -m scripts.run_matrix --matrix configs/experiment_matrix_fullscale.yaml
+
+#then python -m scripts.summarize_runs --out_dir reports --filter m5_ --filter m6_
+
+#python -m scripts.run_matrix --matrix configs/experiment_matrix_broad.yaml --dry_run
+#python -m scripts.run_matrix --matrix configs/experiment_matrix_fullscale.yaml --dry_run 
