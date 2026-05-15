@@ -26,7 +26,22 @@ class ConceptNetStore:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
-
+def get_random_concepts(self, n: int, rng: "random.Random") -> List[str]:
+    """
+    Return n concept strings sampled from the DB.
+    Loads a pool of 2000 concepts once and caches it on the instance,
+    then samples from that pool using the caller's rng (deterministic per-call).
+    """
+    if not hasattr(self, "_concept_pool"):
+        conn = self._connect()
+        try:
+            rows = conn.execute(
+                "SELECT DISTINCT concept FROM edges ORDER BY RANDOM() LIMIT 2000"
+            ).fetchall()
+            self._concept_pool = [r[0] for r in rows]
+        finally:
+            conn.close()
+    return rng.sample(self._concept_pool, min(n, len(self._concept_pool)))
     def get_neighbors(
         self,
         concept: str,
