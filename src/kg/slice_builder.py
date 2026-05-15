@@ -1,6 +1,7 @@
 # src/kg/slice_builder.py
 from __future__ import annotations
 
+import random
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
@@ -26,6 +27,7 @@ class SliceConfig:
     max_entities: int = 6
     max_ngram: int = 3
     scorer_version: str = "v1"
+    random_slice: bool = False   # NEW: control condition flag
 
 
 def config_hash(cfg: SliceConfig) -> str:
@@ -38,16 +40,41 @@ def config_hash(cfg: SliceConfig) -> str:
         "max_entities": cfg.max_entities,
         "max_ngram": cfg.max_ngram,
         "scorer_version": cfg.scorer_version,
+        "random_slice": cfg.random_slice,   # NEW: included so random runs get separate cache entries
     })
 
 
 def score_fact(question_tokens: set[str], head: str, rel: str, tail: str, weight: float) -> float:
-    # Simple lexical overlap + ConceptNet weight.
     fact_tokens = _tokenize(f"{head} {rel} {tail}")
     inter = len(question_tokens & fact_tokens)
     union = len(question_tokens | fact_tokens) or 1
     jacc = inter / union
     return float(weight) + 0.75 * jacc + 0.05 * inter
+
+
+def _random_seeds(
+    store: ConceptNetStore,
+    n: int,
+    rng: random.Random,
+) -> List[str]:
+    """
+    Return n randomly sampled ConceptNet concept strings.
+    Uses the store's concept list; falls back to a small hardcoded set
+    if the store doesn't expose one.
+    """
+    pool = getattr(store, "all_concepts", None)
+    if pool and len(pool) >= n:
+        return rng.sample(pool, n)
+    # Fallback: use the store's get_random_concepts if it exists
+    if hasattr(store, "get_random_concepts"):
+        return store.get_random_concepts(n, rng)
+    # Last resort: fixed diverse concepts — still unrelated to any specific question
+    fallback = [
+        "dog", "water", "tree", "car", "book", "food", "table", "chair",
+        "house", "light", "fire", "stone", "bird", "fish", "road", "clock",
+        "paper", "music", "plant", "river",
+    ]
+    return rng.sample(fallback, min(n, len(fallback)))
 
 
 def build_slice(
@@ -67,11 +94,19 @@ def build_slice(
         return cached, True
 
     t0 = time.time()
-    ex = extract_entities(question_text, max_entities=cfg.max_entities, max_ngram=cfg.max_ngram)
-    seeds = ex.entities
-    q_tokens = set(ex.tokens) | _tokenize(question_text)
-
     rels = relation_set(cfg.relation_set)
+
+    # --- NEW: random control branch ---
+    if cfg.random_slice:
+        # Deterministic per (question_id, image_id) so the run is reproducible,
+        # but completely unrelated to question content.
+        rng = random.Random(int(question_id) * 31337 + int(image_id))
+        seeds = _random_seeds(store, cfg.max_entities, rng)
+        q_tokens = set()   # no question signal
+    else:
+        ex = extract_entities(question_text, max_entities=cfg.max_entities, max_ngram=cfg.max_ngram)
+        seeds = ex.entities
+        q_tokens = set(ex.tokens) | _tokenize(question_text)
 
     candidates: List[Dict[str, Any]] = []
 
@@ -97,7 +132,7 @@ def build_slice(
                 "seed": s,
             })
 
-    # optional hop 2 (bounded; expand from top hop-1)
+    # optional hop 2
     if cfg.hop_depth >= 2 and candidates:
         candidates.sort(key=lambda x: x["score"], reverse=True)
         expand_nodes = [c["tail"] for c in candidates[: min(len(candidates), cfg.top_k)]]
@@ -110,7 +145,7 @@ def build_slice(
             ):
                 head = node
                 tail = e.other
-                sc = score_fact(q_tokens, head, e.relation, tail, e.weight) * 0.9  # dampen hop-2
+                sc = score_fact(q_tokens, head, e.relation, tail, e.weight) * 0.9
                 candidates.append({
                     "head": head,
                     "relation": e.relation,
@@ -122,7 +157,6 @@ def build_slice(
                     "seed": node,
                 })
 
-    # pick top_k
     candidates.sort(key=lambda x: x["score"], reverse=True)
     top = candidates[: cfg.top_k]
 
@@ -145,6 +179,7 @@ def build_slice(
             "n_facts": len(top),
             "build_ms": dt_ms,
             "config_hash": ch,
+            "random_slice": cfg.random_slice,   # NEW: logged in stats
         },
     }
 
