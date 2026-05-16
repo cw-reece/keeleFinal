@@ -69,18 +69,17 @@ def main() -> int:
     cache_root = _cfg_get(cfg, ["kg", "cache_dir"], "data/cache/okvqa/slices")
     cache = SliceCache(cache_root)
 
-    # slice config
-    scfg = SliceConfig(
-        hop_depth=int(_cfg_get(cfg, ["kg", "hop_depth"], 1)),
-        top_k=int(_cfg_get(cfg, ["kg", "top_k"], 10)),
-        relation_set=str(_cfg_get(cfg, ["kg", "relation_set"], "strict")),
-        min_weight=float(_cfg_get(cfg, ["kg", "min_weight"], 0.0)),
-        neighbor_limit=int(_cfg_get(cfg, ["kg", "neighbor_limit"], 200)),
-        max_entities=int(_cfg_get(cfg, ["kg", "max_entities"], 6)),
-        max_ngram=int(_cfg_get(cfg, ["kg", "max_ngram"], 3)),
-        scorer_version=str(_cfg_get(cfg, ["kg", "scorer_version"], "v1")),
-
-    )
+     scfg = SliceConfig(
+         hop_depth=int(_cfg_get(cfg, ["kg", "hop_depth"], 1)),
+         top_k=int(_cfg_get(cfg, ["kg", "top_k"], 10)),
+         relation_set=str(_cfg_get(cfg, ["kg", "relation_set"], "strict")),
+         min_weight=float(_cfg_get(cfg, ["kg", "min_weight"], 0.0)),
+         neighbor_limit=int(_cfg_get(cfg, ["kg", "neighbor_limit"], 200)),
+         max_entities=int(_cfg_get(cfg, ["kg", "max_entities"], 6)),
+         max_ngram=int(_cfg_get(cfg, ["kg", "max_ngram"], 3)),
+         scorer_version=str(_cfg_get(cfg, ["kg", "scorer_version"], "v1")),
+         random_slice=bool(_cfg_get(cfg, ["kg", "random_slice"], False)),
+     )
 
     n = min(args.limit, len(ds))
     facts_per = []
