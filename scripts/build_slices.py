@@ -69,7 +69,7 @@ def main() -> int:
     cache_root = _cfg_get(cfg, ["kg", "cache_dir"], "data/cache/okvqa/slices")
     cache = SliceCache(cache_root)
 
-     scfg = SliceConfig(
+    scfg = SliceConfig(
          hop_depth=int(_cfg_get(cfg, ["kg", "hop_depth"], 1)),
          top_k=int(_cfg_get(cfg, ["kg", "top_k"], 10)),
          relation_set=str(_cfg_get(cfg, ["kg", "relation_set"], "strict")),
