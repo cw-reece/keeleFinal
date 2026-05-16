@@ -222,6 +222,7 @@ def main() -> int:
         max_entities=int(_cfg_get(cfg, ["kg", "max_entities"], 6)),
         max_ngram=int(_cfg_get(cfg, ["kg", "max_ngram"], 3)),
         scorer_version=str(_cfg_get(cfg, ["kg", "scorer_version"], "v1")),
+        random_slice=bool(_cfg_get(cfg, ["kg", "random_slice"], False)),
     )
 
     emb_model = _cfg_get(cfg, ["embed", "model_name"], "sentence-transformers/all-MiniLM-L6-v2")
