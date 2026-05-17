@@ -41,7 +41,7 @@ The earlier `20260304_092423_baseline_v4_pw20_ep3_fullval` run achieved `0.05608
 | 20260304_090407_baseline_v4_pw20_quick | baseline_v4_pw20_quick | 2 | 4 | 2048 | 2048 | 10000 | 0.004232 | VQA-init + pos_weight=20 quickcheck (train/val=2048) shows learning signal. |
 | 20260304_092423_baseline_v4_pw20_ep3_fullval | baseline_v4_pw20_ep3_fullval | 2 | 3 | 9009 | 5046 | 10000 | 0.056084 | Earlier baseline development run; not used as the final frozen baseline.
 
-## Reproduce the current baseline run
+## Baseline reproduction commands
 
 1) Ensure dataset integrity passes:
 ```bash
