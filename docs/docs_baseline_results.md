@@ -6,18 +6,30 @@
 
 This file summarizes baseline-related runs that are logged under `experiments/runs/<run_id>/`.
 
-## Key baseline (current)
+# Baseline Results (OK-VQA)
 
-Current best “report-grade” baseline run in this repo:
+**Project:** Knowledge-Augmented VQA via Task-Specific KG Slicing + Late Fusion  
+**Student:** Christopher Ward Reece  
+**Last updated:** 2026-05-16
 
-- **Run ID:** `20260304_092423_baseline_v4_pw20_ep3_fullval`
-- **Setup:** ViLT encoder initialized from `dandelin/vilt-b32-finetuned-vqa`, answer vocab size 10k, BCE loss with `pos_weight=20`, mixed precision enabled.
-- **Split:** OK-VQA validation (5046 examples)
-- **Metric:** VQA-style soft accuracy  
-- **Result:** **0.056084**
+This file summarizes baseline-related runs and identifies the frozen baseline used for final matched comparison.
 
-> Note: The run tag contains `ep3`, but `metrics.json` reports `epochs=2`. Treat the `metrics.json` fields as the authoritative record for reporting.
+## Final frozen baseline used for dissertation reporting
 
+The final frozen baseline used in the main fusion comparisons is:
+
+- **Run ID:** `BASELINE_FREEZE_20260312_1456`
+- **Checkpoint path:** `experiments/runs/20260304_123946_baseline_v4_ep5/checkpoints/model.pt`
+- **Setup:** ViLT encoder initialized from `dandelin/vilt-b32-finetuned-vqa`, answer vocabulary size 10,000, BCE loss with `pos_weight=20`, mixed precision enabled.
+- **Split:** OK-VQA validation, 5046 examples.
+- **Metric:** VQA-style soft accuracy.
+- **Result:** **0.163892**
+
+This is the authoritative baseline for final dissertation comparisons.
+
+## Earlier baseline development runs
+
+The earlier `20260304_092423_baseline_v4_pw20_ep3_fullval` run achieved `0.056084`. It is retained as development history, but it is not the final frozen baseline used for the final fusion comparisons.
 ## Run summary table
 
 | Run ID | Tag | Epochs | Batch | Train N | Val N | Vocab | Val VQA soft acc | Notes |
@@ -27,7 +39,7 @@ Current best “report-grade” baseline run in this repo:
 | 20260227_1230_baseline_v1_ep1 | baseline_v1_ep1 | 1 | 4 | 256 | 256 | 3000 |  | First end-to-end baseline trainer smoke run (tiny limits). |
 | 20260302_093620_baseline_v2_vocab10k_ep3_fullval | baseline_v2_vocab10k_ep3_fullval | 3 | 4 | 9009 | 5046 | 10000 | 0.001850 | Vocab=10k, full train/val, MLM-init (collapsed; near-zero accuracy). |
 | 20260304_090407_baseline_v4_pw20_quick | baseline_v4_pw20_quick | 2 | 4 | 2048 | 2048 | 10000 | 0.004232 | VQA-init + pos_weight=20 quickcheck (train/val=2048) shows learning signal. |
-| 20260304_092423_baseline_v4_pw20_ep3_fullval | baseline_v4_pw20_ep3_fullval | 2 | 3 | 9009 | 5046 | 10000 | 0.056084 | Report-grade baseline: VQA-init + pos_weight=20, full train/val. (metrics.json shows epochs=2; tag says ep3.) |
+| 20260304_092423_baseline_v4_pw20_ep3_fullval | baseline_v4_pw20_ep3_fullval | 2 | 3 | 9009 | 5046 | 10000 | 0.056084 | Earlier baseline development run; not used as the final frozen baseline.
 
 ## Reproduce the current baseline run
 

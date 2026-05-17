@@ -104,12 +104,12 @@ The baseline uses a ViLT-based classifier over a fixed answer vocabulary. The ba
 The current report-grade baseline recorded in the repository is:
 
 ```
-Run ID: 20260304_092423_baseline_v4_pw20_ep3_fullval
+Run ID: BASELINE_FREEZE_20260312_1456
 Backbone: dandelin/vilt-b32-finetuned-vqa
 Answer vocabulary: 10,000 answers
 Validation split: OK-VQA validation, 5046 examples
 Metric: VQA-style soft accuracy
-Result: 0.056084
+Result: 0.163892
 ```
 
 The run tag includes `ep3`, but the run metadata reports `epochs=2`. The metadata should be treated as the authoritative record.
@@ -231,8 +231,8 @@ python -m src.train_baseline \
 The current report-grade baseline recorded in `docs/docs_baseline_results.md` is:
 
 ```
-20260304_092423_baseline_v4_pw20_ep3_fullval
-Validation VQA-soft accuracy: 0.056084
+BASELINE_FREEZE_20260312_1456
+Validation VQA-soft accuracy: 0.163892
 ```
 
 ## Evaluating a fusion run
@@ -325,23 +325,22 @@ reports/final_results/
 └── selected_cases.md
 ```
 
-## Current headline result
+The final frozen baseline used for matched comparison is:
 
-Baseline:
+```text
+Run ID: BASELINE_FREEZE_20260312_1456
+Validation examples: 5046
+Validation VQA-soft accuracy: 0.163892
+```
 
-```
-Validation VQA-soft accuracy: 0.056084
-Run ID: 20260304_092423_baseline_v4_pw20_ep3_fullval
-```
 The main full-validation fusion results were:
-
+```
 Naive weighted KG fusion: 0.110517, delta -0.053376
 Top-20 weighted KG fusion: 0.163760, delta -0.000132
 Top-20 gated KG fusion: 0.163892, delta 0.000000
 Random-slice weighted control: 0.163760, delta -0.000132
-
-The implemented bounded ConceptNet late-fusion branch did not improve OK-VQA validation accuracy over the frozen ViLT baseline. Naive weighted fusion substantially degraded performance, top-N constrained weighted fusion reduced the harm to a near-zero negative delta, gated fusion preserved baseline performance, and the random-slice control showed that unrelated KG evidence did not create a spurious gain.
-
+```
+The implemented bounded ConceptNet late-fusion branch did not improve OK-VQA validation accuracy over the frozen ViLT baseline. Naive weighted fusion substantially degraded performance, top-N constrained weighted fusion reduced the harm to a near-zero negative delta, gated fusion preserved baseline performance, and the random-slice control showed that unrelated KG evidence did not create a spurious gain
 Full result details are in:
 
 reports/final_results/final_results_summary.md
