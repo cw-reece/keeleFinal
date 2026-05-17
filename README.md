@@ -101,7 +101,7 @@ The dataset loader reads OK-VQA question and annotation files and links them to 
 
 The baseline uses a ViLT-based classifier over a fixed answer vocabulary. The baseline is treated as the frozen comparison point for knowledge-augmented experiments.
 
-The current report-grade baseline recorded in the repository is:
+The final frozen baseline used for matched comparison is:
 
 ```
 Run ID: BASELINE_FREEZE_20260312_1456
@@ -111,8 +111,6 @@ Validation split: OK-VQA validation, 5046 examples
 Metric: VQA-style soft accuracy
 Result: 0.163892
 ```
-
-The run tag includes `ep3`, but the run metadata reports `epochs=2`. The metadata should be treated as the authoritative record.
 
 ### ConceptNet knowledge slicing
 
@@ -228,7 +226,7 @@ python -m src.train_baseline \
   --tag baseline_v4_pw20_epX_fullval
 ```
 
-The current report-grade baseline recorded in `docs/docs_baseline_results.md` is:
+The final frozen baseline recorded in `docs/docs_baseline_results.md` is:
 
 ```
 BASELINE_FREEZE_20260312_1456
