@@ -333,21 +333,25 @@ Baseline:
 Validation VQA-soft accuracy: 0.056084
 Run ID: 20260304_092423_baseline_v4_pw20_ep3_fullval
 ```
+The main full-validation fusion results were:
 
-Final fusion result:
+Naive weighted KG fusion: 0.110517, delta -0.053376
+Top-20 weighted KG fusion: 0.163760, delta -0.000132
+Top-20 gated KG fusion: 0.163892, delta 0.000000
+Random-slice weighted control: 0.163760, delta -0.000132
 
-```
-TODO: Insert final selected weighted/gated fusion run ID.
-TODO: Insert final baseline-vs-fused comparison.
-TODO: Insert final delta.
-```
+The implemented bounded ConceptNet late-fusion branch did not improve OK-VQA validation accuracy over the frozen ViLT baseline. Naive weighted fusion substantially degraded performance, top-N constrained weighted fusion reduced the harm to a near-zero negative delta, gated fusion preserved baseline performance, and the random-slice control showed that unrelated KG evidence did not create a spurious gain.
+
+Full result details are in:
+
+reports/final_results/final_results_summary.md
+reports/final_results/random_slice_control.md
 
 The dissertation should state clearly whether the KG branch improved, matched, or degraded performance under matched conditions.
 
 A null or negative result is still valid if the evaluation shows why: for example, noisy entity linking, generic ConceptNet neighbours, answer-space mismatch, weak KG-answer alignment, or gated fusion suppressing unreliable knowledge.
 
 ## Testing strategy
-
 The project should be tested at several levels.
 
 Unit-level checks:
