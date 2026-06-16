@@ -25,13 +25,27 @@ A smaller ablation matrix varied relation set, top-k fact count, and fusion mode
 
 ## 3. Testing Strategy
 
-Testing was performed at three levels: component testing, integration testing, and system-level evaluation.
+Testing and verification were organised at three levels: component-level verification, integration-level verification, and system-level evaluation.
 
-At the component level, the project required correct behaviour for answer normalisation, VQA-soft scoring, entity extraction, ConceptNet relation filtering, slice construction, cache-key generation, and deterministic random-slice generation. These checks were important because errors in answer normalisation or cache reuse could make reported accuracy misleading.
+At the component level, the project relied on checks and inspection of answer normalisation, VQA-soft scoring, entity extraction, ConceptNet relation filtering, slice construction, cache-key generation, and deterministic random-slice generation. These checks were important because errors in answer normalisation or cache reuse could make reported accuracy misleading.
 
 At the integration level, the key concern was whether data and predictions flowed correctly through the complete pipeline. The OK-VQA dataset loader had to produce image-question-answer records in the expected format. The baseline model had to output answer logits over the same answer vocabulary used by the evaluator. The KG branch had to build slices for the same question and image identifiers being evaluated. Finally, the fusion module had to combine baseline and KG logits without changing the baseline configuration.
 
 At the system level, the evaluation tested complete saved runs. Each run logged its configuration, fusion mode, slice settings, random seed, validation size, baseline accuracy, fused accuracy, and delta. This allowed comparisons to be traced back to specific run IDs rather than informal experiment notes.
+
+## 3.1 Test and Verification Evidence
+
+| Area | Purpose | Evidence used |
+|---|---|---|
+| Dataset loading | Confirm OK-VQA examples can be loaded and linked to image IDs | Dataset check script and successful baseline/fusion runs |
+| Answer vocabulary | Confirm predictions use a fixed answer space | 10,000-answer vocabulary used by baseline and fusion runs |
+| Baseline evaluation | Establish frozen comparator | `BASELINE_FREEZE_20260312_1456` metrics |
+| KG slicing | Confirm bounded ConceptNet slices are generated | Slice builder configuration and cached slice outputs |
+| Cache separation | Avoid accidental reuse across KG settings | Slice configuration hash includes slice-affecting parameters |
+| Fusion evaluation | Compare baseline and KG-augmented outputs | Full-validation weighted/gated/top-N runs |
+| Ablation | Test sensitivity to relation set, top-k, and fusion mode | 512-example ablation matrix |
+| Random-slice control | Test whether unrelated KG produces spurious gains | Random-slice full-validation control |
+| Qualitative analysis | Inspect plausible reasons for failures | Error-analysis tooling and selected cases |
 
 ## 4. Full-Validation Results
 
@@ -48,9 +62,9 @@ The full-validation experiments used 5046 OK-VQA validation examples. These runs
 
 The naive weighted fusion run substantially degraded performance, reducing VQA-soft accuracy from 0.163892 to 0.110517. This indicates that directly injecting the KG-derived answer signal into the full answer distribution can be harmful. The result is consistent with the expectation that external KG evidence may introduce noise when entity linking, fact relevance, or answer-space alignment are imperfect.
 
-The gated fusion run preserved baseline performance exactly. This suggests that the gating mechanism learned to suppress the KG branch when the external evidence was not useful enough to improve predictions. While this did not produce a positive gain, it is still an important diagnostic result because it shows that gating can reduce the risk of harmful KG injection.
+The gated fusion run preserved baseline performance exactly. This suggests that the gated configuration either suppressed or neutralised the KG contribution in aggregate. Without a detailed gate-value analysis, this should be interpreted as behavioural evidence rather than direct proof of the learned gate mechanism. The result is still useful because it shows that the gated configuration was safer than naive weighted fusion under the tested conditions.
 
-Top-N constrained weighted fusion avoided the large degradation observed in naive weighted fusion. Both top-50 and top-20 constrained weighted runs produced a much smaller negative delta of -0.000132. This suggests that restricting KG influence to the baseline model’s most plausible answer candidates makes fusion safer, but still not beneficial under the current knowledge representation.
+Top-N constrained weighted fusion avoided the large degradation observed in naive weighted fusion. Both top-50 and top-20 constrained weighted runs produced a much smaller negative delta of -0.000132. This suggests that restricting KG influence to the baseline model's most plausible answer candidates made fusion safer, but still not beneficial under the current knowledge representation.
 
 The full-validation results therefore do not support the hypothesis that the implemented bounded ConceptNet late-fusion branch improves OK-VQA validation accuracy over the frozen ViLT baseline.
 
@@ -93,7 +107,7 @@ This control strengthens the interpretation of the main results. If a task-speci
 
 ## 7. Error Analysis and Diagnostic Interpretation
 
-The quantitative results show that the implemented KG branch did not improve validation accuracy. The likely causes are technical rather than conceptual.
+The quantitative results show that the implemented KG branch did not improve validation accuracy. The likely causes are a mixture of retrieval, representation, and fusion limitations.
 
 First, ConceptNet contains many generic commonsense relations. Even when relation filtering and top-k bounds are used, retrieved facts can be too broad or only weakly related to the answer required by OK-VQA.
 
@@ -109,16 +123,26 @@ Several threats to validity should be noted.
 
 The ablation matrix used a 512-example validation subset, so those results should be treated as diagnostic rather than definitive. The full-validation runs provide the headline conclusion.
 
-The baseline accuracy is below modern state-of-the-art OK-VQA performance. However, the project’s research question is comparative within a controlled implementation: whether the bounded KG branch improves over the frozen baseline under matched conditions.
+The baseline is a local project baseline rather than a claim of state-of-the-art OK-VQA performance. The project's research question is comparative within a controlled implementation: whether the bounded KG branch improves over the frozen baseline under matched conditions.
 
 The random-slice control tests whether unrelated knowledge creates a spurious gain, but it does not prove that task-specific slices are semantically correct. Additional manual slice-quality annotation would strengthen the analysis.
 
 The evaluation uses VQA-soft accuracy, which is appropriate for OK-VQA but still depends on answer normalisation and exact answer vocabulary coverage. Some semantically reasonable answers may receive low credit if they do not match the annotator answer distribution.
 
-## 9. Evaluation Conclusion
+The interpretation of the gated fusion result is based on aggregate behaviour. Since detailed gate-value analysis was not included in the final evidence pack, the result should be described as preserving or neutralising performance rather than as direct proof that the gate learned a specific semantic decision rule.
+
+## 9. What Would Have Counted as Success
+
+The project would have supported the main hypothesis if task-specific ConceptNet fusion produced a meaningful positive delta over the frozen baseline on the full validation set.
+
+A stronger positive outcome would also have included a consistent positive trend across at least one ablation family, such as top-k settings or relation-set settings, while the random-slice control remained flat or negative. This would have helped attribute improvement to relevant KG retrieval rather than to extra trainable parameters or reranking effects.
+
+That pattern did not occur. The final results therefore support a negative but informative conclusion: the implemented KG branch was successfully integrated and evaluated, but did not improve validation accuracy under the tested conditions.
+
+## 10. Evaluation Conclusion
 
 The evaluation does not demonstrate an accuracy improvement from bounded task-specific ConceptNet augmentation via late fusion.
 
-The strongest defensible conclusion is that the system successfully implemented and evaluated a modular KG-augmented VQA architecture, but the current knowledge retrieval and fusion approach did not improve OK-VQA validation accuracy. Naive weighted fusion harmed performance, top-N constrained fusion reduced the harm to a near-zero negative delta, gated fusion preserved baseline performance by suppressing unreliable KG evidence, and the random-slice control confirmed that unrelated KG evidence did not create an artificial gain.
+The strongest defensible conclusion is that the system successfully implemented and evaluated a modular KG-augmented VQA architecture, but the current knowledge retrieval and fusion approach did not improve OK-VQA validation accuracy. Naive weighted fusion harmed performance, top-N constrained fusion reduced the harm to a near-zero negative delta, gated fusion preserved baseline performance in aggregate, and the random-slice control confirmed that unrelated KG evidence did not create an artificial gain.
 
 These findings suggest that future work should focus on improving entity grounding, KG slice relevance, fact-answer alignment, and calibration of the knowledge signal before expecting consistent gains from late-fusion ConceptNet augmentation.
