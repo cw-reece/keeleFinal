@@ -15,12 +15,7 @@ class FusionOutput:
 
 
 class WeightedAddFusion(nn.Module):
-    """fused = base + alpha * kg
 
-    Fixes:
-    - constrain alpha >= 0 (alpha = softplus(alpha_raw)) to prevent "inverting" KG.
-    - allow learn_alpha=False for fixed alpha (no trainable params).
-    """
 
     def __init__(self, alpha_init: float = 0.5, learn_alpha: bool = True) -> None:
         super().__init__()
@@ -44,7 +39,7 @@ class WeightedAddFusion(nn.Module):
 
 
 class GatedFusion(nn.Module):
-    """fused = base + gate(kg_emb) * kg"""
+
 
     def __init__(self, emb_dim: int, hidden_dim: int = 128) -> None:
         super().__init__()

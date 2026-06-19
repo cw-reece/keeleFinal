@@ -57,10 +57,7 @@ class AnswerEmbeddingCache:
 
 
 class KnowledgeEncoder:
-    """Facts -> pooled knowledge embedding -> logits over answer vocab.
 
-    kg_logits[a] is cosine_sim(kg_emb, answer_emb[a]) * temperature.
-    """
 
     def __init__(
         self,

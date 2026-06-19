@@ -76,6 +76,7 @@ baseline answer logits          entity extraction
 .
 ├── configs/                  # Experiment and model configuration files
 ├── data/                     # Local data paths, processed vocab, and cache directories
+├── dissertation_pack/        # Curated dissertation evidence: selected run artefacts and metrics
 ├── docs/                     # Project documentation, architecture, risks, results notes
 ├── experiments/              # Logged runs, metrics, configs, and checkpoints
 ├── reports/                  # QC logs, final result tables, error analysis outputs

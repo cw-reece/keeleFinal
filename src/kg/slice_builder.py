@@ -27,7 +27,7 @@ class SliceConfig:
     max_entities: int = 6
     max_ngram: int = 3
     scorer_version: str = "v1"
-    random_slice: bool = False   # NEW: control condition flag
+    random_slice: bool = False
 
 
 def config_hash(cfg: SliceConfig) -> str:
@@ -40,7 +40,7 @@ def config_hash(cfg: SliceConfig) -> str:
         "max_entities": cfg.max_entities,
         "max_ngram": cfg.max_ngram,
         "scorer_version": cfg.scorer_version,
-        "random_slice": cfg.random_slice,   # NEW: included so random runs get separate cache entries
+        "random_slice": cfg.random_slice,
     })
 
 
@@ -57,11 +57,7 @@ def _random_seeds(
     n: int,
     rng: random.Random,
 ) -> List[str]:
-    """
-    Return n randomly sampled ConceptNet concept strings.
-    Uses the store's concept list; falls back to a small hardcoded set
-    if the store doesn't expose one.
-    """
+
     pool = getattr(store, "all_concepts", None)
     if pool and len(pool) >= n:
         return rng.sample(pool, n)
