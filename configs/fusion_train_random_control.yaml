@@ -1,7 +1,3 @@
-# configs/fusion_train_random_control.yaml
-# Control condition: random KG slices (unrelated to question content).
-# Confirms the model ignores the KG branch regardless of slice content.
-
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images

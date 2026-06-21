@@ -1,6 +1,3 @@
-# configs/fusion_train_v3_topn.yaml
-# Hotfix: constrain alpha >= 0 and only apply KG to baseline top-N candidates.
-
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images

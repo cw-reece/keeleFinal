@@ -1,4 +1,3 @@
-# scripts/eval_fusion_run.py
 """Eval baseline vs fused for a given fusion run_dir.
 
 Usage:

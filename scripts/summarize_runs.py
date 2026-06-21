@@ -1,4 +1,3 @@
-# scripts/summarize_runs.py
 """Summarize metrics.json across runs into CSV + Markdown.
 
 Usage:

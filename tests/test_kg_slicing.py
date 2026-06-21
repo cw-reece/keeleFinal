@@ -1,4 +1,3 @@
-# tests/test_kg_slicing.py
 import pytest
 from pathlib import Path
 

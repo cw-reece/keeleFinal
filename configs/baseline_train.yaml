@@ -1,4 +1,3 @@
-# configs/baseline_train.yaml
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images
@@ -19,8 +18,8 @@ training:
   batch_size: 4
   learning_rate: 5e-5
   weight_decay: 0.01
-  mixed_precision: true 
-  limit_train: 9009 
+  mixed_precision: true
+  limit_train: 9009
   limit_val: 5046
   num_workers: 0
 

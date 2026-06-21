@@ -1,6 +1,3 @@
-# configs/experiment_matrix.yaml
-# Milestone 6: automated experiment matrix for fusion runs.
-
 base_config: configs/fusion_train_v3_topn.yaml
 runner: fusion
 tag_prefix: m6_matrix

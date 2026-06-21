@@ -30,7 +30,7 @@ def _index_annotations(ann_json: Dict[str, Any]) -> Dict[int, List[str]]:
         answers: List[str] = []
 
         if "answers" in a and isinstance(a["answers"], list):
-            # VQA format: [{"answer": "..."} ...]
+
             if a["answers"] and isinstance(a["answers"][0], dict) and "answer" in a["answers"][0]:
                 answers = [str(x.get("answer", "")) for x in a["answers"]]
             else:

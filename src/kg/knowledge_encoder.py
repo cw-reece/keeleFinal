@@ -1,4 +1,3 @@
-# src/kg/knowledge_encoder.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,8 +11,8 @@ from src.kg.text_encoder import TextEncoder
 
 @dataclass
 class KGEncoding:
-    kg_emb: torch.Tensor     # [B,H]
-    kg_logits: torch.Tensor  # [B,V]
+    kg_emb: torch.Tensor
+    kg_logits: torch.Tensor
     debug: Dict[str, Any]
 
 
@@ -119,7 +118,7 @@ class KnowledgeEncoder:
 
             emb = torch.nn.functional.normalize(_weighted_avg(fact_emb, w), p=2, dim=-1)
 
-            sims = emb @ ans.T  # [V]
+            sims = emb @ ans.T
             logits = sims * self.temperature
 
             kg_embs.append(emb)

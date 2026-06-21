@@ -1,4 +1,3 @@
-# scripts/inspect_baseline_predictions.py
 """Inspect baseline predictions distribution to catch 'always predicts X' failures.
 
 Usage:

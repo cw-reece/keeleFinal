@@ -1,4 +1,3 @@
-# src/kg/text_encoder.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -18,7 +17,7 @@ def mean_pool(last_hidden: torch.Tensor, attention_mask: torch.Tensor) -> torch.
 
 @dataclass
 class EncodeResult:
-    embeddings: torch.Tensor  # [N,H] on CPU
+    embeddings: torch.Tensor
     dim: int
 
 

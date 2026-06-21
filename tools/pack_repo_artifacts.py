@@ -1,4 +1,3 @@
-# tools/pack_repo_artifacts.py
 """Collect key dissertation artifacts from the repo into a single folder + zip.
 
 Run from repo root:
@@ -7,7 +6,6 @@ Run from repo root:
 This does NOT modify your experiments; it only copies files.
 
 By default it copies:
-- docs/*.md (if present)
 - configs used (baseline/kg/fusion/matrix)
 - reports tables + plots
 - selected error-analysis cases (selected_cases.md + summary.json)
@@ -91,19 +89,19 @@ def main() -> int:
     copied: List[str] = []
     missing: List[str] = []
 
-    # docs
+
     for rel in DEFAULT_DOCS:
         copy_if_exists(repo, rel, out, copied, missing)
 
-    # configs
+
     for rel in DEFAULT_CONFIGS:
         copy_if_exists(repo, rel, out, copied, missing)
 
-    # reports
+
     for rel in DEFAULT_REPORTS:
         copy_if_exists(repo, rel, out, copied, missing)
 
-    # plots
+
     plots = list((repo / "reports/plots").glob("*.png"))
     if plots:
         for p in plots:
@@ -112,7 +110,7 @@ def main() -> int:
     else:
         missing.append("reports/plots/*.png")
 
-    # error analysis (selected cases + summary)
+
     ea_dirs = sorted((repo / "reports/error_analysis").glob("*")) if (repo / "reports/error_analysis").exists() else []
     if not ea_dirs:
         missing.append("reports/error_analysis/* (no error analysis dirs found)")
@@ -125,12 +123,12 @@ def main() -> int:
                 rel = str((d / "predictions.jsonl").relative_to(repo))
                 copy_if_exists(repo, rel, out, copied, missing)
 
-    # run metrics for key runs
+
     for rid in DEFAULT_RUN_IDS:
         rel = f"experiments/runs/{rid}/metrics.json"
         copy_if_exists(repo, rel, out, copied, missing)
 
-    # all m6 matrix run metrics (small)
+
     m6_metrics = sorted(glob.glob(str(repo / "experiments/runs/*m6_matrix*/metrics.json")))
     if m6_metrics:
         for p in m6_metrics:
@@ -139,7 +137,7 @@ def main() -> int:
     else:
         missing.append("experiments/runs/*m6_matrix*/metrics.json")
 
-    # write manifest
+
     manifest = out / "MANIFEST.md"
     lines = []
     lines.append("# Dissertation Pack Manifest\n\n")
@@ -153,7 +151,7 @@ def main() -> int:
         lines.append(f"- {m}\n")
     manifest.write_text("".join(lines), encoding="utf-8")
 
-    # zip
+
     zip_name = f"dissertation_pack_{datetime.now().strftime('%Y%m%d')}.zip"
     zip_path = out.parent / zip_name
 

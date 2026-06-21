@@ -1,4 +1,3 @@
-# configs/baseline_train.yaml (suggested update)
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images
@@ -8,7 +7,6 @@ data:
   val_annotations_json: "mscoco_val2014_annotations.json"
 
 model:
-  # Start from ViLT MLM backbone but initialize from a VQA-finetuned checkpoint's encoder weights
   backbone_checkpoint: "dandelin/vilt-b32-mlm"
   init_from_vqa_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
   dropout: 0.1
@@ -22,7 +20,6 @@ training:
   learning_rate: 5e-5
   weight_decay: 0.01
   mixed_precision: true
-  # remove limits for report-grade runs (or set explicitly)
   limit_train: 9009
   limit_val: 5046
   num_workers: 0

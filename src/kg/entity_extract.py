@@ -1,4 +1,3 @@
-# src/kg/entity_extract.py
 from __future__ import annotations
 
 import re
@@ -44,7 +43,7 @@ def extract_entities(question: str, *, max_entities: int = 6, max_ngram: int = 3
     raw_tokens = _TOKEN_RE.findall(question.lower())
     tokens = [t for t in raw_tokens if t and t not in _STOPWORDS]
 
-    # Build candidate ngrams in order of appearance.
+
     candidates: list[str] = []
     n = len(tokens)
     for k in range(max_ngram, 0, -1):
@@ -54,7 +53,7 @@ def extract_entities(question: str, *, max_entities: int = 6, max_ngram: int = 3
             if phrase and phrase not in _STOPWORDS:
                 candidates.append(phrase)
 
-    # Deduplicate while preserving order.
+
     seen: Set[str] = set()
     entities: List[str] = []
     for c in candidates:

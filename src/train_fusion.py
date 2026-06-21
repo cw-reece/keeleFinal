@@ -1,4 +1,3 @@
-# src/train_fusion.py
 from __future__ import annotations
 
 import argparse
@@ -110,7 +109,7 @@ def apply_topn_rerank(base_logits: torch.Tensor, kg_logits: torch.Tensor, scale:
     B, V = base_logits.shape
     topn = min(int(topn), V)
 
-    idx = base_logits.topk(topn, dim=-1).indices  # [B,topn]
+    idx = base_logits.topk(topn, dim=-1).indices
     base_top = base_logits.gather(1, idx)
     kg_top = kg_logits.gather(1, idx)
 
@@ -155,10 +154,10 @@ def eval_loop(
             kg = kg_enc.encode_batch(slices)
 
             if isinstance(fusion, GatedFusion):
-                gate = fusion.mlp(kg.kg_emb)  # [B,1]
+                gate = fusion.mlp(kg.kg_emb)
                 fused = apply_topn_rerank(base_logits, kg.kg_logits, gate, topn_rerank)
             else:
-                a = fusion.alpha()  # scalar
+                a = fusion.alpha()
                 fused = apply_topn_rerank(base_logits, kg.kg_logits, a, topn_rerank)
         else:
             fused = base_logits
@@ -250,7 +249,7 @@ def main() -> int:
             learn_alpha=bool(_cfg_get(cfg, ["fusion", "learn_alpha"], True)),
         ).to(device)
 
-    # data
+
     ann_dir = _cfg_get(cfg, ["data", "annotations_dir"])
     img_root = _cfg_get(cfg, ["data", "coco_images_root"])
     train_q = _cfg_get(cfg, ["data", "train_questions_json"])

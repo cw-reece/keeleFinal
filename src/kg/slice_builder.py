@@ -1,4 +1,3 @@
-# src/kg/slice_builder.py
 from __future__ import annotations
 
 import random
@@ -61,10 +60,10 @@ def _random_seeds(
     pool = getattr(store, "all_concepts", None)
     if pool and len(pool) >= n:
         return rng.sample(pool, n)
-    # Fallback: use the store's get_random_concepts if it exists
+
     if hasattr(store, "get_random_concepts"):
         return store.get_random_concepts(n, rng)
-    # Last resort: fixed diverse concepts — still unrelated to any specific question
+
     fallback = [
         "dog", "water", "tree", "car", "book", "food", "table", "chair",
         "house", "light", "fire", "stone", "bird", "fish", "road", "clock",
@@ -92,13 +91,13 @@ def build_slice(
     t0 = time.time()
     rels = relation_set(cfg.relation_set)
 
-    # --- NEW: random control branch ---
+
     if cfg.random_slice:
-        # Deterministic per (question_id, image_id) so the run is reproducible,
-        # but completely unrelated to question content.
+
+
         rng = random.Random(int(question_id) * 31337 + int(image_id))
         seeds = _random_seeds(store, cfg.max_entities, rng)
-        q_tokens = set()   # no question signal
+        q_tokens = set()
     else:
         ex = extract_entities(question_text, max_entities=cfg.max_entities, max_ngram=cfg.max_ngram)
         seeds = ex.entities
@@ -106,7 +105,7 @@ def build_slice(
 
     candidates: List[Dict[str, Any]] = []
 
-    # hop 1
+
     for s in seeds:
         for e in store.get_neighbors(
             s,
@@ -128,7 +127,7 @@ def build_slice(
                 "seed": s,
             })
 
-    # optional hop 2
+
     if cfg.hop_depth >= 2 and candidates:
         candidates.sort(key=lambda x: x["score"], reverse=True)
         expand_nodes = [c["tail"] for c in candidates[: min(len(candidates), cfg.top_k)]]
@@ -175,7 +174,7 @@ def build_slice(
             "n_facts": len(top),
             "build_ms": dt_ms,
             "config_hash": ch,
-            "random_slice": cfg.random_slice,   # NEW: logged in stats
+            "random_slice": cfg.random_slice,
         },
     }
 

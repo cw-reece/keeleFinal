@@ -1,7 +1,6 @@
-# run_metadata.py
 """Lightweight experiment run metadata + folder management.
 
-Hotfix:
+Implementation note:
 - Run IDs now include seconds to prevent collisions when you run twice in the same minute.
 """
 

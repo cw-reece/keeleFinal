@@ -1,4 +1,3 @@
-# src/eval/vqa_scoring.py
 from __future__ import annotations
 
 from src.eval.normalize import vqa_soft_accuracy

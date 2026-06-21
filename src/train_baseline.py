@@ -1,4 +1,3 @@
-# src/train_baseline.py
 """Baseline training for OK-VQA (Milestone 2) — VQA-init + class-imbalance fix.
 
 This version addresses two common failure modes that produce near-zero accuracy even with good vocab coverage:
@@ -169,7 +168,7 @@ def maybe_init_from_vqa(model: ViltForAnswerVocab, vqa_ckpt: str) -> Dict[str, A
 
     donor = ViltForQuestionAnswering.from_pretrained(vqa_ckpt)
     incompatible = model.vilt.load_state_dict(donor.vilt.state_dict(), strict=False)
-    # In newer torch/transformers, load_state_dict returns an IncompatibleKeys object.
+
     missing = getattr(incompatible, "missing_keys", [])
     unexpected = getattr(incompatible, "unexpected_keys", [])
     info = {
@@ -229,7 +228,7 @@ def main() -> int:
     processor = ViltProcessor.from_pretrained(backbone, use_fast=False)
     model = ViltForAnswerVocab(backbone_checkpoint=backbone, num_labels=num_labels, dropout=float(_cfg_get(cfg, ["model", "dropout"], 0.1))).to(device)
 
-    # Optional: initialize encoder from VQA checkpoint
+
     vqa_init_ckpt = _cfg_get(cfg, ["model", "init_from_vqa_checkpoint"], "")
     vqa_init_info = maybe_init_from_vqa(model, vqa_init_ckpt)
 
@@ -241,7 +240,7 @@ def main() -> int:
     if limit_val is not None:
         limit_val = int(limit_val)
 
-    # pos_weight
+
     pos_weight_cfg = _cfg_get(cfg, ["training", "pos_weight"], None)
     pos_weight_max = float(_cfg_get(cfg, ["training", "pos_weight_max"], 200.0))
     pos_weight_auto_samples = int(_cfg_get(cfg, ["training", "pos_weight_auto_samples"], 512))

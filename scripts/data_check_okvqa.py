@@ -37,7 +37,7 @@ def main() -> int:
         print(f"ERROR: annotations_dir not found: {ann_dir}")
         return 2
 
-    # If you haven’t set filenames yet, this prints what’s available.
+
     if not all([train_q, train_a, val_q, val_a]):
         print("Config missing one or more required fields:")
         print("  data.train_questions_json")

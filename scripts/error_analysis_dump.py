@@ -1,18 +1,15 @@
-# scripts/error_analysis_dump.py
 """Dump per-example baseline vs fused predictions + KG slice facts for error analysis.
 
 This is designed for *manual* qualitative analysis: pick ~6-12 interesting cases and write
 about why KG helped/hurt/was ignored.
 
 Examples:
-  # Baseline vs Top-N weighted fusion run
   python -m scripts.error_analysis_dump \
     --config configs/fusion_train_v3_topn.yaml \
     --fusion_run_dir experiments/runs/20260313_145031_m5_topn20_weighted_fullval \
     --split val --limit 300 \
     --out_dir reports/error_analysis/m5_topn20_weighted_val300
 
-  # Baseline vs Top-N gated fusion run
   python -m scripts.error_analysis_dump \
     --config configs/fusion_train_v3_topn.yaml \
     --fusion_run_dir experiments/runs/20260313_145705_m5_topn20_gated_fullval \
@@ -174,7 +171,7 @@ def main() -> int:
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # Load vocab / model / processor
+
     vocab_path = _cfg_get(cfg, ["model", "answer_vocab", "path"], "data/processed/okvqa/answer_vocab.json")
     idx_to_answer = load_answer_vocab(vocab_path)
     V = len(idx_to_answer)
@@ -192,7 +189,7 @@ def main() -> int:
     for p in baseline.parameters():
         p.requires_grad_(False)
 
-    # KG store/cache/slice cfg
+
     store = ConceptNetStore(_cfg_get(cfg, ["conceptnet", "db_path"]))
     slice_cache = SliceCache(_cfg_get(cfg, ["kg", "cache_dir"], "data/cache/okvqa/slices"))
 
@@ -208,7 +205,7 @@ def main() -> int:
         scorer_version=str(scfg.get("scorer_version", "v1")),
     )
 
-    # Knowledge encoder must match run settings
+
     emb_model = str(run_metrics.get("embed_model") or _cfg_get(cfg, ["embed", "model_name"], "sentence-transformers/all-MiniLM-L6-v2"))
     emb_cache_dir = _cfg_get(cfg, ["embed", "cache_dir"], "data/cache/embeddings")
 
@@ -222,7 +219,7 @@ def main() -> int:
         answer_batch_size=int(_cfg_get(cfg, ["embed", "answer_batch_size"], 512)),
     )
 
-    # Fusion model + weights
+
     fusion_ckpt = run_dir / "checkpoints" / "fusion.pt"
     if not fusion_ckpt.exists():
         raise SystemExit(f"Missing {fusion_ckpt}")
@@ -236,7 +233,7 @@ def main() -> int:
     fusion.load_state_dict(fstate, strict=True)
     fusion.eval()
 
-    # Dataset
+
     ann_dir = _cfg_get(cfg, ["data", "annotations_dir"])
     img_root = _cfg_get(cfg, ["data", "coco_images_root"])
     if args.split == "train":
@@ -271,9 +268,9 @@ def main() -> int:
     with pred_path.open("w", encoding="utf-8") as f:
         for batch in tqdm(dl, desc="dump"):
             b = move_to_device(batch, device)
-            base_logits = baseline(b["inputs"]).logits  # [B,V]
+            base_logits = baseline(b["inputs"]).logits
 
-            # slices + KG logits
+
             slices = []
             slice_objs = []
             for qid, iid, qtxt in zip(b["question_ids"], b["image_ids"], b["question_texts"]):
@@ -284,11 +281,11 @@ def main() -> int:
             kg = kg_enc.encode_batch(slices)
 
             if fusion_mode == "gated":
-                gate = fusion.mlp(kg.kg_emb)  # [B,1]
+                gate = fusion.mlp(kg.kg_emb)
                 fused_logits = apply_topn_rerank(base_logits, kg.kg_logits, gate, topn)
                 scale_used = gate.detach().cpu().view(-1).tolist()
             else:
-                a_scale = fusion.alpha()  # scalar >=0
+                a_scale = fusion.alpha()
                 fused_logits = apply_topn_rerank(base_logits, kg.kg_logits, a_scale, topn)
                 scale_used = [float(a_scale.detach().cpu().item())] * base_logits.size(0)
 
@@ -345,8 +342,8 @@ def main() -> int:
                 f.write(json.dumps(obj) + "\n")
                 items.append(obj)
 
-    # Select cases for writeup
-    def score_delta(x): 
+
+    def score_delta(x):
         return x["fused"]["soft_score"] - x["baseline"]["soft_score"]
 
     improved_cases = sorted([x for x in items if x["outcome"] == "improved"], key=score_delta, reverse=True)[:4]

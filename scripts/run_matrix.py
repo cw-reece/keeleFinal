@@ -1,4 +1,3 @@
-# scripts/run_matrix.py
 """Run an experiment matrix by generating per-run YAML configs and invoking train scripts.
 
 Usage:
@@ -63,7 +62,7 @@ def main() -> int:
     base_config_path = Path(matrix["base_config"])
     base_cfg = yaml.safe_load(base_config_path.read_text(encoding="utf-8"))
 
-    runner = matrix.get("runner", "fusion")  # fusion | baseline
+    runner = matrix.get("runner", "fusion")
     prefix = matrix.get("tag_prefix", "m6")
     gen_dir = Path(matrix.get("generated_config_dir", "configs/generated/matrix"))
     gen_dir.mkdir(parents=True, exist_ok=True)

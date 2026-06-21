@@ -1,4 +1,3 @@
-# scripts/plot_results.py
 """Make basic plots from reports/run_summary.csv.
 
 Usage:

@@ -1,4 +1,3 @@
-# configs/baseline_train_v3_suggested.yaml
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images

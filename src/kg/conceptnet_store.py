@@ -1,4 +1,3 @@
-# src/kg/conceptnet_store.py
 from __future__ import annotations
 
 import random

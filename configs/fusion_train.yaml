@@ -1,6 +1,3 @@
-# configs/fusion_train.yaml
-# Milestone 5: Late fusion (baseline + KG signal)
-
 data:
   annotations_dir: data/raw/okvqa/annotations
   coco_images_root: data/raw/okvqa/images
@@ -39,10 +36,10 @@ embed:
   answer_batch_size: 256
 
 fusion:
-  mode: weighted # weighted | gated
+  mode: weighted
   alpha_init: 0.05
   learn_alpha: false
-  hidden_dim: 128 # gated only
+  hidden_dim: 128
 
 training:
   seed: 42

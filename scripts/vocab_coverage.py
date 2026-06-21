@@ -1,4 +1,3 @@
-# scripts/vocab_coverage.py
 """Measure answer-vocabulary coverage on OK-VQA splits.
 
 Why:

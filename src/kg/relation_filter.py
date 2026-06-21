@@ -1,4 +1,3 @@
-# src/kg/relation_filter.py
 from __future__ import annotations
 
 STRICT_RELATIONS = {
@@ -40,7 +39,7 @@ def relation_set(name: str) -> set[str]:
         return set(STRICT_RELATIONS)
     if n in ("broad", "all"):
         return set(BROAD_RELATIONS)
-    # allow comma-separated custom
+
     if "," in n:
         return set(x.strip() for x in name.split(",") if x.strip())
     return set(STRICT_RELATIONS)

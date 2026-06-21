@@ -1,4 +1,3 @@
-# src/fusion/late_fusion.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,7 +10,7 @@ import torch.nn.functional as F
 @dataclass
 class FusionOutput:
     fused_logits: torch.Tensor
-    alpha: torch.Tensor  # scalar (weighted) or [B,1] (gated)
+    alpha: torch.Tensor
 
 
 class WeightedAddFusion(nn.Module):
@@ -51,6 +50,6 @@ class GatedFusion(nn.Module):
         )
 
     def forward(self, base_logits: torch.Tensor, kg_logits: torch.Tensor, kg_emb: torch.Tensor) -> FusionOutput:
-        gate = self.mlp(kg_emb)  # [B,1]
+        gate = self.mlp(kg_emb)
         fused = base_logits + gate * kg_logits
         return FusionOutput(fused_logits=fused, alpha=gate)

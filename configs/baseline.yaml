@@ -9,7 +9,6 @@ data:
   annotations_dir: data/raw/okvqa/annotations
   split: val
 
-  # OK-VQA / VQA-style JSON filenames under annotations_dir
   train_questions_json: "OpenEnded_mscoco_train2014_questions.json"
   train_annotations_json: "mscoco_train2014_annotations.json"
   val_questions_json: "OpenEnded_mscoco_val2014_questions.json"
@@ -18,7 +17,6 @@ data:
 model:
   baseline: vilt
 
-  # Used only for eval sanity-check until you train your own baseline
   pretrained_checkpoint: "dandelin/vilt-b32-finetuned-vqa"
 
   answer_vocab:
@@ -43,9 +41,8 @@ kg:
   cache_dir: data/cache/okvqa/slices
 
 fusion:
-  mode: none  # none | weighted | gating
+  mode: none
 
 logging:
   out_root: experiments/runs
   include_pip_freeze: false
-

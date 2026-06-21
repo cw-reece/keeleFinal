@@ -1,4 +1,3 @@
-# scripts/build_slices.py
 from __future__ import annotations
 
 import argparse
@@ -50,11 +49,11 @@ def main() -> int:
 
     cfg = load_config(args.config)
 
-    # init run logging
+
     out_root = _cfg_get(cfg, ["logging", "out_root"], "experiments/runs")
     ctx = init_run(tag=args.tag, config_path=args.config, out_root=out_root, include_pip_freeze=False, extra={"purpose": "kg_slicing"})
 
-    # dataset
+
     ann_dir = _cfg_get(cfg, ["data", "annotations_dir"])
     img_root = _cfg_get(cfg, ["data", "coco_images_root"])
     q_file = _cfg_get(cfg, ["data", "val_questions_json"] if args.split == "val" else ["data", "train_questions_json"])
@@ -62,7 +61,7 @@ def main() -> int:
 
     ds = OKVQADataset(f"{ann_dir}/{q_file}", f"{ann_dir}/{a_file}", img_root, load_images=False)
 
-    # store + cache
+
     db_path = _cfg_get(cfg, ["conceptnet", "db_path"])
     store = ConceptNetStore(db_path)
 
@@ -114,7 +113,7 @@ def main() -> int:
         if nf > 0:
             nonempty += 1
 
-        # write a small auditable sample set
+
         if samples_written < args.sample_count and nf > 0:
             md = []
             md.append(f"# Slice sample {samples_written+1}\n")
@@ -147,7 +146,7 @@ def main() -> int:
         "samples_dir": str(samples_dir),
     }
 
-    # write stats artifacts
+
     (Path(ctx.run_dir) / "slice_stats.json").write_text(json.dumps(stats, indent=2, sort_keys=True), encoding="utf-8")
     write_metrics(ctx.run_dir, stats)
 

@@ -1,4 +1,3 @@
-# scripts/eval_baseline_ckpt.py
 """Evaluate a baseline checkpoint on OK-VQA split.
 
 Usage:

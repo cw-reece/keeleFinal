@@ -1,4 +1,3 @@
-# src/kg/conceptnet_ingest.py
 from __future__ import annotations
 
 import gzip
@@ -32,7 +31,7 @@ def _extract_en_concept(uri: str) -> Optional[str]:
     if not uri.startswith("/c/en/"):
         return None
     rest = uri[len("/c/en/"):]
-    # stop at next '/'
+
     term = rest.split("/", 1)[0]
     term = unquote(term)
     term = term.strip().lower()
@@ -42,7 +41,7 @@ def _extract_en_concept(uri: str) -> Optional[str]:
 
 
 def _relation_name(uri: str) -> str:
-    # /r/IsA -> IsA
+
     if uri.startswith("/r/"):
         return uri[len("/r/"):]
     return uri
@@ -65,8 +64,8 @@ def iter_assertions(path: Path) -> Iterator[Tuple[str, str, str, float, str]]:
             line = line.strip()
             if not line:
                 continue
-            # ConceptNet assertions are tab-separated. Format:
-            # uri, rel, start, end, meta_json
+
+
             parts = line.split("\t")
             if len(parts) < 5:
                 continue
@@ -83,7 +82,7 @@ def iter_assertions(path: Path) -> Iterator[Tuple[str, str, str, float, str]]:
             rel = _relation_name(rel_uri)
             w = _parse_weight(meta_json)
 
-            # surface text is nice for audit, but optional
+
             surface = ""
             try:
                 meta = json.loads(meta_json)
